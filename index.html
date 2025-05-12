@@ -2,13 +2,113 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smältpartiet Nyhetsflöde</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smältpartiet</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&family=Roboto&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Roboto', sans-serif;
+      background: #fffaf4;
+      color: #222;
+    }
+    header {
+      background: #ff914d;
+      padding: 1rem 2rem;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    nav a {
+      margin-left: 1rem;
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    main {
+      padding: 2rem;
+    }
+    .title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+    .news-section {
+      margin-top: 3rem;
+      background: #fff;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .post, .comment {
+      margin: 1rem 0;
+      padding: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #fafafa;
+    }
+    footer {
+      text-align: center;
+      padding: 1rem;
+      margin-top: 2rem;
+      background: #ffe3cb;
+    }
+    .reaction-btns button {
+      margin-right: 0.5rem;
+    }
+    .comment-input {
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <img src="logo.png" alt="Smältpartiet" height="50"/>
+    </div>
+    <nav>
+      <a href="#">Hem</a>
+      <a href="#news">Nyheter</a>
+      <a href="#kontakt">Kontakt</a>
+    </nav>
+  </header>
+
+  <main>
+    <section>
+      <h1 class="title">Välkommen till Smältpartiet</h1>
+      <p>Vi smälter pengar för ett bättre samhälle. Gå med oss i kampen mot stagnation – smält och bygg nytt!</p>
+    </section>
+
+    <section class="news-section" id="news">
+      <h2 class="title">Nyhetsflöde</h2>
+      <div>
+        <input type="text" id="username" placeholder="Ditt användarnamn" />
+        <input type="text" id="message" placeholder="Vad vill du säga?" />
+        <button onclick="postMessage()">Skicka</button>
+        <select id="sortOrder" onchange="setSort(this.value)">
+          <option value="desc">Nyast först</option>
+          <option value="asc">Äldst först</option>
+        </select>
+      </div>
+      <div id="messages"></div>
+    </section>
+
+    <section id="kontakt">
+      <h2 class="title">Kontakt</h2>
+      <p>Maila oss på: <a href="mailto:kontakt@smaltpartiet.se">kontakt@smaltpartiet.se</a></p>
+    </section>
+  </main>
+
+  <footer>
+    <p>Smältpartiet © 2025 • <a href="https://discord.gg/zJcQWgjQBn" target="_blank">Gå med i vår Discord</a></p>
+  </footer>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
-      getFirestore, collection, addDoc, getDocs, updateDoc, doc, increment, query, orderBy
+      getFirestore, collection, addDoc, getDocs, doc, updateDoc, increment, query, orderBy
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -25,23 +125,31 @@
 
     let currentSort = "desc";
 
-    async function postMessage(username, text) {
+    async function postMessage() {
+      const username = document.getElementById("username").value || "Anonym";
+      const text = document.getElementById("message").value;
+      if (text.length < 2) return;
+
       await addDoc(collection(db, "posts"), {
         username,
         text,
         timestamp: new Date(),
-        likes: 0,
         fire: 0,
         smile: 0,
         sad: 0
       });
+      document.getElementById("message").value = "";
       loadMessages();
     }
 
-    async function postComment(postId, username, comment) {
+    async function postComment(postId) {
+      const uname = document.getElementById(`cuser-${postId}`).value || "Anonym";
+      const ctext = document.getElementById(`ctext-${postId}`).value;
+      if (ctext.length < 2) return;
+
       await addDoc(collection(db, `posts/${postId}/comments`), {
-        username,
-        comment,
+        username: uname,
+        comment: ctext,
         timestamp: new Date()
       });
       loadMessages();
@@ -49,74 +157,61 @@
 
     async function reactToPost(postId, reaction) {
       const postRef = doc(db, "posts", postId);
-      await updateDoc(postRef, {
-        [reaction]: increment(1)
-      });
+      await updateDoc(postRef, { [reaction]: increment(1) });
       loadMessages();
     }
 
     async function loadMessages() {
-      const messagesDiv = document.getElementById("messages");
-      messagesDiv.innerHTML = "Laddar...";
-      const postsQuery = query(collection(db, "posts"), orderBy("timestamp", currentSort));
-      const querySnapshot = await getDocs(postsQuery);
-      const posts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
+      const container = document.getElementById("messages");
+      container.innerHTML = "<p>Laddar...</p>";
+      const q = query(collection(db, "posts"), orderBy("timestamp", currentSort));
+      const querySnapshot = await getDocs(q);
       let html = "";
-      for (let post of posts) {
-        const commentSnapshot = await getDocs(collection(db, `posts/${post.id}/comments`));
-        const comments = commentSnapshot.docs.map(doc => doc.data());
+      for (let docSnap of querySnapshot.docs) {
+        const data = docSnap.data();
+        const postId = docSnap.id;
+        const commentsSnap = await getDocs(collection(db, `posts/${postId}/comments`));
+        let commentsHTML = "<ul>";
+        commentsSnap.forEach(c => {
+          const d = c.data();
+          commentsHTML += `<li><strong>${d.username}</strong>: ${d.comment}</li>`;
+        });
+        commentsHTML += "</ul>";
 
         html += `
-          <div style="border:1px solid #ccc;padding:10px;margin:10px 0">
-            <strong>${post.username}</strong> <em>${new Date(post.timestamp.seconds * 1000).toLocaleString()}</em>
-            <p>${post.text}</p>
-            <div>
-              <button onclick="reactToPost('${post.id}', 'fire')">🔥 (${post.fire || 0})</button>
-              <button onclick="reactToPost('${post.id}', 'smile')">😄 (${post.smile || 0})</button>
-              <button onclick="reactToPost('${post.id}', 'sad')">😢 (${post.sad || 0})</button>
+          <div class="post">
+            <strong>${data.username}</strong> <em>${new Date(data.timestamp.seconds * 1000).toLocaleString()}</em>
+            <p>${data.text}</p>
+            <div class="reaction-btns">
+              <button onclick="reactToPost('${postId}', 'fire')">🔥 ${data.fire}</button>
+              <button onclick="reactToPost('${postId}', 'smile')">😄 ${data.smile}</button>
+              <button onclick="reactToPost('${postId}', 'sad')">😢 ${data.sad}</button>
             </div>
-            <div style="margin-top:10px">
-              <strong>Kommentarer:</strong>
-              <ul>
-                ${comments.map(c => `<li><strong>${c.username}</strong>: ${c.comment}</li>`).join("")}
-              </ul>
-              <input type="text" placeholder="Ditt namn" id="commentUser-${post.id}">
-              <input type="text" placeholder="Din kommentar" id="commentText-${post.id}">
-              <button onclick="postComment('${post.id}', document.getElementById('commentUser-${post.id}').value, document.getElementById('commentText-${post.id}').value)">Kommentera</button>
+            <div class="comments">
+              <h4>Kommentarer:</h4>
+              ${commentsHTML}
+              <div class="comment-input">
+                <input id="cuser-${postId}" placeholder="Ditt namn">
+                <input id="ctext-${postId}" placeholder="Kommentera...">
+                <button onclick="postComment('${postId}')">Skicka</button>
+              </div>
             </div>
           </div>
         `;
       }
-
-      messagesDiv.innerHTML = html;
+      container.innerHTML = html;
     }
 
     window.postMessage = postMessage;
-    window.reactToPost = reactToPost;
+    window.loadMessages = loadMessages;
     window.postComment = postComment;
-    window.onload = loadMessages;
-
-    window.setSort = function(order) {
-      currentSort = order;
+    window.reactToPost = reactToPost;
+    window.setSort = function (val) {
+      currentSort = val;
       loadMessages();
-    }
+    };
+
+    window.onload = loadMessages;
   </script>
-</head>
-<body>
-  <h1>Nyhetsflöde</h1>
-  <div>
-    <input type="text" id="username" placeholder="Ditt användarnamn">
-    <input type="text" id="message" placeholder="Vad vill du säga?">
-    <button onclick="postMessage(document.getElementById('username').value, document.getElementById('message').value)">Skicka</button>
-  </div>
-  <div style="margin-top:10px">
-    <label>Sortera:</label>
-    <select onchange="setSort(this.value)">
-      <option value="desc">Nyast först</option>
-      <option value="asc">Äldst först</option>
-    </select>
-  </div>
-  <div id="messages" style="margin-top:20px;"></div>
 </body>
 </html>
