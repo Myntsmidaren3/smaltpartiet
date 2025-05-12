@@ -36,15 +36,31 @@
       margin: auto;
     }
     .logo {
-      width: 150px;
+      width: 180px;
       display: block;
       margin: 2rem auto;
+      filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.2));
+    }
+    button {
+      background-color: #d2691e;
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      font-size: 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #a0522d;
     }
     footer {
       text-align: center;
       padding: 1rem;
       background-color: #222;
       color: #ccc;
+    }
+    a {
+      color: #d2691e;
     }
   </style>
 </head>
@@ -78,7 +94,9 @@
   <section id="medlem">
     <h2>Bli medlem</h2>
     <p>Vill du göra skillnad? Gå med i Smältpartiet idag och hjälp oss forma en värld där pengar inte bara byter händer, utan också formar framtiden.</p>
-    <button>Bli medlem</button>
+    <a href="mailto:kontakt@smaltpartiet.se?subject=Bli%20medlem%20i%20Smältpartiet">
+      <button>Bli medlem</button>
+    </a>
   </section>
 
   <section id="kontakt">
