@@ -2,11 +2,13 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&family=Roboto&display=swap" rel="stylesheet">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Smältpartiet - Från mynt till mening</title>
   <style>
     body {
+      font-family: 'Roboto', sans-serif;
       font-family: 'Segoe UI', sans-serif;
       background-color: #f8e2c0;
       color: #333;
@@ -29,11 +31,16 @@
       text-decoration: none;
       margin: 0 1rem;
       font-weight: bold;
+      cursor: pointer;
     }
     section {
+      display: none;
       padding: 2rem;
       max-width: 800px;
       margin: auto;
+    }
+    section.active {
+      display: block;
     }
     .logo {
       width: 180px;
@@ -53,6 +60,15 @@
     button:hover {
       background-color: #a0522d;
     }
+    input, textarea {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 0.5rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
     footer {
       text-align: center;
       padding: 1rem;
@@ -62,6 +78,31 @@
     a {
       color: #d2691e;
     }
+  
+    h1, h2 { font-family: 'Montserrat', sans-serif; }
+</style>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .animated-button {
+      transition: background-color 0.3s, transform 0.2s;
+    }
+    .animated-button:hover {
+      background-color: #a0522d;
+      transform: scale(1.05);
+    }
+    .news {
+      background-color: #fff7ea;
+      border-left: 5px solid #d2691e;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .icon-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.2rem;
+    }
   </style>
 </head>
 <body>
@@ -70,14 +111,16 @@
     <p>Vi smälter inte för makt – vi smälter för mening.</p>
   </header>
   <nav>
-    <a href="#program">Partiprogram</a>
-    <a href="#projekt">Våra projekt</a>
-    <a href="#medlem">Bli medlem</a>
-    <a href="#kontakt">Kontakt</a>
+    <a onclick="showTab('program')">Partiprogram</a>
+    <a onclick="showTab('projekt')">Projekt</a>
+    <a onclick="showTab('medlem')">Bli medlem</a>
+    <a onclick="showTab('kontakt')">Kontakt</a>
+    <a onclick="showTab('nyheter')">Nyheter</a>
+    <a onclick="showTab('matpolitik')">Matpolitik</a>
   </nav>
   <img src="logo.png" alt="Smältpartiets logotyp" class="logo">
 
-  <section id="program">
+  <section id="program" class="active">
     <h2>Partiprogram</h2>
     <p>Smältpartiet står för symbolisk återvinning av vårt förflutna. Vi vill ta vara på gamla mynt och göra något nytt av dem: konst, infrastruktur, och kulturarv.</p>
   </section>
@@ -95,17 +138,112 @@
     <h2>Bli medlem</h2>
     <p>Vill du göra skillnad? Gå med i Smältpartiet idag och hjälp oss forma en värld där pengar inte bara byter händer, utan också formar framtiden.</p>
     <a href="mailto:kontakt@smaltpartiet.se?subject=Bli%20medlem%20i%20Smältpartiet">
-      <button>Bli medlem</button>
+      <button class='animated-button'>Bli medlem</button>
     </a>
   </section>
 
   <section id="kontakt">
     <h2>Kontakt</h2>
-    <p>Mejla oss på <a href="mailto:kontakt@smaltpartiet.se">kontakt@smaltpartiet.se</a></p>
+    <form action="mailto:kontakt@smaltpartiet.se" method="POST" enctype="text/plain">
+      <label for="namn">Namn:</label>
+      <input type="text" id="namn" name="namn" required>
+
+      <label for="epost">E-post:</label>
+      <input type="email" id="epost" name="epost" required>
+
+      <label for="meddelande">Meddelande:</label>
+      <textarea id="meddelande" name="meddelande" rows="5" required></textarea>
+
+      <button class='animated-button' type="submit">Skicka</button>
+    </form>
+  
+    <section id="nyheter">
+      <h2>Nyheter</h2>
+      <div class="news">
+        <div class="icon-label"><i data-lucide="newspaper"></i> <strong>1 maj: </strong>Första smältceremonin genomförd i Göteborg!</div>
+      </div>
+      <div class="news">
+        <div class="icon-label"><i data-lucide="mail"></i> <strong>15 april: </strong>Nu kan du kontakta partiet direkt via vårt formulär!</div>
+      </div>
+    </section>
+  </section>
+
+  <section id="matpolitik">
+    <h2>Matpolitik</h2>
+    <p>Smältpartiet värnar om ett robust, inkluderande och smakrikt matsystem. Vi vill se:</p>
+    <ul>
+      <li>Subventioner för lokalproducerad mat</li>
+      <li>Offentliga kök som serverar klimatsmarta tamales</li>
+      <li>Utbildning i smältande matkultur och gemenskap</li>
+    </ul>
   </section>
 
   <footer>
     <p>&copy; 2025 Smältpartiet. All koppar räknas.</p>
   </footer>
+
+  <script>
+    function showTab(tabId) {
+      document.querySelectorAll('section').forEach(sec => {
+        sec.classList.remove('active');
+      });
+      document.getElementById(tabId).classList.add('active');
+    }
+  </script>
+<script>
+    lucide.createIcons();
+  </script>
+
+<script>
+  function addPost() {
+    const name = document.getElementById('username').value.trim();
+    const text = document.getElementById('userpost').value.trim();
+    if (!name || !text) {
+      alert("Skriv både namn och inlägg!");
+      return;
+    }
+    const container = document.getElementById('news-feed');
+    const entry = document.createElement("div");
+    entry.className = "news";
+    entry.innerHTML = `<strong>${name}:</strong> ${text}`;
+    container.prepend(entry);
+    document.getElementById('username').value = "";
+    document.getElementById('userpost').value = "";
+  }
+</script>
+
+<script>
+  const container = document.getElementById('news-feed');
+
+  function loadPosts() {
+    const stored = localStorage.getItem("smalt_nyheter");
+    if (stored) {
+      container.innerHTML = stored;
+    }
+  }
+
+  function addPost() {
+    const name = document.getElementById('username').value.trim();
+    const text = document.getElementById('userpost').value.trim();
+    if (!name || !text) {
+      alert("Skriv både namn och inlägg!");
+      return;
+    }
+    const entry = document.createElement("div");
+    entry.className = "news";
+    entry.innerHTML = `<strong>${name}:</strong> ${text}`;
+    container.prepend(entry);
+
+    // Spara nyhetsflödet i localStorage
+    localStorage.setItem("smalt_nyheter", container.innerHTML);
+
+    document.getElementById('username').value = "";
+    document.getElementById('userpost').value = "";
+  }
+
+  // Ladda nyheter vid start
+  window.onload = loadPosts;
+</script>
 </body>
+
 </html>
