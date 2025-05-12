@@ -4,16 +4,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fejk-inläggsuppladdare</title>
+  <title>Lägg till Fejkade Inlägg</title>
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, Timestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCCKvEp1RxyZ460oenxRXtQIYZzb146WCc",
       authDomain: "smaltpartiet.firebaseapp.com",
       projectId: "smaltpartiet",
-      storageBucket: "smaltpartiet.firebasestorage.app",
+      storageBucket: "smaltpartiet.appspot.com",
       messagingSenderId: "1002050657222",
       appId: "1:1002050657222:web:363e388d046332377ef0c7"
     };
@@ -21,56 +21,99 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const fakeUsers = [
-      "ValterVrede", "ElsaEkonomi", "MalmMagnus", "TinaTenn", "NickelNils",
-      "RostRonny", "AnnaAlloy", "StålStina", "KopparKalle", "BlyBritt",
-      "AluAlex", "ZinkZara", "GråGöran", "PlatinaPetra", "SilverSimon",
-      "JärnJenny", "TitanTom", "SmältSara", "GuldGustav", "MyntMoa"
+    const users = [
+      "PengarPelle", "MyntMoa", "KronKung", "ValutaVera", "CashCarl", "EkonomiElsa",
+      "SkattSven", "BudgetBritta", "SilverSimon", "RiksbankRagnar", "MyntMaja",
+      "BankBosse", "SparaSara", "FinansFredrik", "InvestIris", "KreditKristoffer",
+      "ÖreOlle", "FondFrida", "BörsBengt", "LikvidLinn"
     ];
 
-    const fakeComments = [
-      "Det här partiet är allt jag drömt om!",
-      "Dags att smälta systemet!",
-      "Vilken vacker tronsits vi kan skapa.",
-      "Äntligen någon som tar enkronor på allvar.",
-      "Jag röstar på Smältpartiet varje gång.",
-      "Var anmäler man sig som rustningssmed?",
-      "Bästa idén sen osthyveln!",
-      "Tror vi kan bygga ett helt slott av mynt.",
-      "Guld är överskattat – ge mig koppar!",
-      "Smält ner, bygg upp, börja om.",
-      "Vi behöver fler myntvisionärer!",
-      "Kan man bli medlem med Swish?",
-      "Underbar hemsida, smälter mitt hjärta.",
-      "Det här förändrar allt!",
-      "Vi ses på nästa smältsession!",
-      "Enkronor för evigt!",
-      "Hur kan man hjälpa till mer?",
-      "Jag nominerar Smältpartiet till riksdagen.",
-      "Smältpartiet 4 life!",
-      "Allt annat bleknar i jämförelse."
+    const comments = [
+      "Fantastisk idé!", "Mer smältning åt folket!", "Jag stöttar fullt ut!", "Hur kan jag hjälpa till?",
+      "Vi måste reformera myntsystemet!", "Smältpartiet 2026!", "Bästa sidan jag sett!", "Briljant!",
+      "Folk kommer prata om detta i generationer!", "En revolution i metall!", "Otroligt bra jobb!",
+      "Ni har mitt stöd!", "Folkets parti!", "Alla borde gå med!", "Jag delar detta direkt!",
+      "Äntligen ett parti för oss!", "Starkt!", "Metall är framtiden!", "Hur anmäler man sig?",
+      "Vill bli medlem nu!"
     ];
 
-    async function uploadPosts() {
-      for (let i = 0; i < 20; i++) {
-        const username = fakeUsers[i];
-        const content = fakeComments[i];
-        await addDoc(collection(db, "posts"), {
-          username,
-          content,
-          timestamp: serverTimestamp(),
-          likes: 0,
-          reactions: {},
-          comments: []
-        });
-      }
-      document.body.innerHTML = "<h2>20 inlägg har laddats upp! 🚀</h2>";
+    const used = new Set();
+
+    function getRandomPost() {
+      let user, comment;
+      do {
+        user = users[Math.floor(Math.random() * users.length)];
+        comment = comments[Math.floor(Math.random() * comments.length)];
+      } while (used.has(user + comment));
+      used.add(user + comment);
+      return { user, comment };
     }
 
-    window.onload = uploadPosts;
+    async function addRandomPost() {
+      const { user, comment } = getRandomPost();
+      await addDoc(collection(db, "posts"), {
+        author: user,
+        content: comment,
+        timestamp: Timestamp.now(),
+        likes: 0,
+        reactions: {}
+      });
+      console.log("Inlägg tillagt:", user, comment);
+      showNotification(`Nytt inlägg tillagt av ${user}`);
+      const el = document.createElement("p");
+      el.textContent = `${user}: ${comment}`;
+      document.getElementById("log").appendChild(el);
+    }
+
+    async function startPosting() {
+      document.getElementById("status").textContent = "Lägger upp första 20 inlägg...";
+      for (let i = 0; i < 20; i++) {
+        await addRandomPost();
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+      document.getElementById("status").textContent = "Klar! Nu läggs ett nytt inlägg upp varannan minut.";
+      setInterval(addRandomPost, 120000); // Varannan minut
+    }
+
+    window.onload = () => {
+      startPosting();
+    };
   </script>
+
+  <style>
+    #notifier {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #323232;
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.5s ease;
+      z-index: 9999;
+    }
+    #notifier.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
 </head>
-<body>
-  <h1>Laddar upp inlägg...</h1>
+<body style="font-family: sans-serif; padding: 2rem;">
+  <h1>Automatisk uppladdare</h1>
+  <p id="status">Startar...</p>
+  <div id="log"></div>
+
+  <div id="notifier"></div>
+  <script>
+    function showNotification(message) {
+      const notifier = document.getElementById("notifier");
+      notifier.textContent = message;
+      notifier.classList.add("show");
+      setTimeout(() => notifier.classList.remove("show"), 4000);
+    }
+  </script>
 </body>
 </html>
