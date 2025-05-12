@@ -1,0 +1,125 @@
+
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lägg till Fejkade Inlägg</title>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, Timestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCCKvEp1RxyZ460oenxRXtQIYZzb146WCc",
+      authDomain: "smaltpartiet.firebaseapp.com",
+      projectId: "smaltpartiet",
+      storageBucket: "smaltpartiet.appspot.com",
+      messagingSenderId: "1002050657222",
+      appId: "1:1002050657222:web:363e388d046332377ef0c7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const users = [
+      "PengarPelle", "MyntMoa", "KronKung", "ValutaVera", "CashCarl", "EkonomiElsa",
+      "SkattSven", "BudgetBritta", "SilverSimon", "RiksbankRagnar", "MyntMaja",
+      "BankBosse", "SparaSara", "FinansFredrik", "InvestIris", "KreditKristoffer",
+      "ÖreOlle", "FondFrida", "BörsBengt", "LikvidLinn"
+    ];
+
+    const comments = [
+      "Fantastisk idé!", "Mer smältning åt folket!", "Jag stöttar fullt ut!", "Hur kan jag hjälpa till?",
+      "Vi måste reformera myntsystemet!", "Smältpartiet 2026!", "Bästa sidan jag sett!", "Briljant!",
+      "Folk kommer prata om detta i generationer!", "En revolution i metall!", "Otroligt bra jobb!",
+      "Ni har mitt stöd!", "Folkets parti!", "Alla borde gå med!", "Jag delar detta direkt!",
+      "Äntligen ett parti för oss!", "Starkt!", "Metall är framtiden!", "Hur anmäler man sig?",
+      "Vill bli medlem nu!"
+    ];
+
+    const used = new Set();
+
+    function getRandomPost() {
+      let user, comment;
+      do {
+        user = users[Math.floor(Math.random() * users.length)];
+        comment = comments[Math.floor(Math.random() * comments.length)];
+      } while (used.has(user + comment));
+      used.add(user + comment);
+      return { user, comment };
+    }
+
+    async function addRandomPost() {
+      const { user, comment } = getRandomPost();
+      await addDoc(collection(db, "posts"), {
+        author: user,
+        content: comment,
+        timestamp: Timestamp.now(),
+        likes: 0,
+        reactions: {}
+      });
+      console.log("Inlägg tillagt:", user, comment);
+      showNotification(`Nytt inlägg tillagt av ${user}`);
+      const el = document.createElement("p");
+      el.textContent = `${user}: ${comment}`;
+      document.getElementById("log").appendChild(el);
+    }
+
+    async function startPosting() {
+      document.getElementById("status").textContent = "Lägger upp första 20 inlägg...";
+      for (let i = 0; i < 20; i++) {
+        await addRandomPost();
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+      document.getElementById("status").textContent = "Klar! Nu läggs ett nytt inlägg upp varannan minut.";
+      setInterval(addRandomPost, 120000); // Varannan minut
+    }
+
+    window.onload = () => {
+      startPosting();
+    };
+  </script>
+
+  <style>
+    #notifier {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #323232;
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.5s ease;
+      z-index: 9999;
+    }
+    #notifier.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body style="font-family: sans-serif; padding: 2rem;">
+  <h1>Automatisk uppladdare</h1>
+  <p id="status">Startar...</p>
+  <div id="log"></div>
+
+  <div id="notifier"></div>
+  <script>
+const samplePosts = [{'username': 'Smältaren', 'comment': 'Jag tycker vi ska införa smältplikt!', 'timestamp': '2025-05-11 14:04'}, {'username': 'KopparKarl', 'comment': 'Fantastiskt initiativ!', 'timestamp': '2025-05-03 14:04'}, {'username': 'RiksdalerRagnar', 'comment': 'När börjar nästa smältsession?', 'timestamp': '2025-05-09 14:04'}, {'username': 'JärnJanne', 'comment': 'Älskar partiets vision!', 'timestamp': '2025-05-02 14:04'}, {'username': 'ZinkZelda', 'comment': 'Länge leve Smältpartiet!', 'timestamp': '2025-05-11 14:04'}, {'username': 'NickelNina', 'comment': 'Jag bidrar med mina gamla mynt direkt!', 'timestamp': '2025-05-10 14:04'}, {'username': 'ValörViktor', 'comment': 'Vi behöver fler smältare i kommunen.', 'timestamp': '2025-05-02 14:04'}, {'username': 'MyntMoa', 'comment': 'Tronen måste vara av rent koppar!', 'timestamp': '2025-05-09 14:04'}, {'username': 'TronTobbe', 'comment': 'Jag är redo att ta på mig rustningen!', 'timestamp': '2025-05-08 14:04'}, {'username': 'GjutGreta', 'comment': 'Finns det merch ännu?', 'timestamp': '2025-05-03 14:04'}, {'username': 'RostRoger', 'comment': 'Vi borde ha en smältfestival!', 'timestamp': '2025-05-10 14:04'}, {'username': 'StansSara', 'comment': 'Jag donerade 3kg enkronor!', 'timestamp': '2025-05-05 14:04'}, {'username': 'MetallMicke', 'comment': 'Var kan jag anmäla mig som frivillig?', 'timestamp': '2025-05-09 14:04'}, {'username': 'FaluFredrik', 'comment': 'Går det att få sitt namn ingraverat i tronen?', 'timestamp': '2025-05-02 14:04'}, {'username': 'SilverSelma', 'comment': 'Kan man smälta 5-kronor också?', 'timestamp': '2025-05-02 14:04'}, {'username': 'KronaKlara', 'comment': 'Bästa sajten på hela internet.', 'timestamp': '2025-05-09 14:04'}, {'username': 'ValsVerner', 'comment': 'Jag röstade redan – på Smältpartiet!', 'timestamp': '2025-05-07 14:04'}, {'username': 'AlloyAlva', 'comment': 'Mynten kallar. Vi lyder.', 'timestamp': '2025-05-02 14:04'}, {'username': 'BronsBosse', 'comment': 'Har vi ett smältmanifest ännu?', 'timestamp': '2025-05-03 14:04'}, {'username': 'PenningsPetra', 'comment': 'Allt för metallen!', 'timestamp': '2025-05-05 14:04'}];
+
+samplePosts.forEach(post => {
+  savePostToFirebase(post.username, post.comment, post.timestamp);
+});
+setTimeout(() => console.log('Initial posts loaded.'), 1000);
+    function showNotification(message) {
+      const notifier = document.getElementById("notifier");
+      notifier.textContent = message;
+      notifier.classList.add("show");
+      setTimeout(() => notifier.classList.remove("show"), 4000);
+    }
+  </script>
+</body>
+</html>
