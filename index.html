@@ -1,450 +1,122 @@
 
 <!DOCTYPE html>
-
 <html lang="sv">
 <head>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&amp;family=Roboto&amp;display=swap" rel="stylesheet"/>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Smältpartiet - Från mynt till mening</title>
-<style>
-    body {
-      font-family: 'Roboto', sans-serif;
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f8e2c0;
-      color: #333;
-      margin: 0;
-      padding: 0;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smältpartiet Nyhetsflöde</title>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getFirestore, collection, addDoc, getDocs, updateDoc, doc, increment, query, orderBy
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCCKvEp1RxyZ460oenxRXtQIYZzb146WCc",
+      authDomain: "smaltpartiet.firebaseapp.com",
+      projectId: "smaltpartiet",
+      storageBucket: "smaltpartiet.firebasestorage.app",
+      messagingSenderId: "1002050657222",
+      appId: "1:1002050657222:web:363e388d046332377ef0c7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let currentSort = "desc";
+
+    async function postMessage(username, text) {
+      await addDoc(collection(db, "posts"), {
+        username,
+        text,
+        timestamp: new Date(),
+        likes: 0,
+        fire: 0,
+        smile: 0,
+        sad: 0
+      });
+      loadMessages();
     }
-    header {
-      background-color: #d2691e;
-      padding: 1rem;
-      text-align: center;
-      color: white;
+
+    async function postComment(postId, username, comment) {
+      await addDoc(collection(db, `posts/${postId}/comments`), {
+        username,
+        comment,
+        timestamp: new Date()
+      });
+      loadMessages();
     }
-    nav {
-      background-color: #333;
-      padding: 0.5rem;
-      text-align: center;
+
+    async function reactToPost(postId, reaction) {
+      const postRef = doc(db, "posts", postId);
+      await updateDoc(postRef, {
+        [reaction]: increment(1)
+      });
+      loadMessages();
     }
-    nav a {
-      color: white;
-      text-decoration: none;
-      margin: 0 1rem;
-      font-weight: bold;
-      cursor: pointer;
+
+    async function loadMessages() {
+      const messagesDiv = document.getElementById("messages");
+      messagesDiv.innerHTML = "Laddar...";
+      const postsQuery = query(collection(db, "posts"), orderBy("timestamp", currentSort));
+      const querySnapshot = await getDocs(postsQuery);
+      const posts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      let html = "";
+      for (let post of posts) {
+        const commentSnapshot = await getDocs(collection(db, `posts/${post.id}/comments`));
+        const comments = commentSnapshot.docs.map(doc => doc.data());
+
+        html += `
+          <div style="border:1px solid #ccc;padding:10px;margin:10px 0">
+            <strong>${post.username}</strong> <em>${new Date(post.timestamp.seconds * 1000).toLocaleString()}</em>
+            <p>${post.text}</p>
+            <div>
+              <button onclick="reactToPost('${post.id}', 'fire')">🔥 (${post.fire || 0})</button>
+              <button onclick="reactToPost('${post.id}', 'smile')">😄 (${post.smile || 0})</button>
+              <button onclick="reactToPost('${post.id}', 'sad')">😢 (${post.sad || 0})</button>
+            </div>
+            <div style="margin-top:10px">
+              <strong>Kommentarer:</strong>
+              <ul>
+                ${comments.map(c => `<li><strong>${c.username}</strong>: ${c.comment}</li>`).join("")}
+              </ul>
+              <input type="text" placeholder="Ditt namn" id="commentUser-${post.id}">
+              <input type="text" placeholder="Din kommentar" id="commentText-${post.id}">
+              <button onclick="postComment('${post.id}', document.getElementById('commentUser-${post.id}').value, document.getElementById('commentText-${post.id}').value)">Kommentera</button>
+            </div>
+          </div>
+        `;
+      }
+
+      messagesDiv.innerHTML = html;
     }
-    section {
-      display: none;
-      padding: 2rem;
-      max-width: 800px;
-      margin: auto;
+
+    window.postMessage = postMessage;
+    window.reactToPost = reactToPost;
+    window.postComment = postComment;
+    window.onload = loadMessages;
+
+    window.setSort = function(order) {
+      currentSort = order;
+      loadMessages();
     }
-    section.active {
-      display: block;
-    }
-    .logo {
-      width: 180px;
-      display: block;
-      margin: 2rem auto;
-      filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.2));
-    }
-    button {
-      background-color: #d2691e;
-      color: white;
-      border: none;
-      padding: 1rem 2rem;
-      font-size: 1rem;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #a0522d;
-    }
-    input, textarea {
-      width: 100%;
-      padding: 0.75rem;
-      margin-top: 0.5rem;
-      margin-bottom: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 1rem;
-    }
-    footer {
-      text-align: center;
-      padding: 1rem;
-      background-color: #222;
-      color: #ccc;
-    }
-    a {
-      color: #d2691e;
-    }
-  
-    h1, h2 { font-family: 'Montserrat', sans-serif; }
-</style>
-<script src="https://unpkg.com/lucide@latest"></script>
-<style>
-    .animated-button {
-      transition: background-color 0.3s, transform 0.2s;
-    }
-    .animated-button:hover {
-      background-color: #a0522d;
-      transform: scale(1.05);
-    }
-    .news {
-      background-color: #fff7ea;
-      border-left: 5px solid #d2691e;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .icon-label {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 1.2rem;
-    }
-  </style>
+  </script>
 </head>
 <body>
-<div id="editor-indicator" style="display:none; background: #222; color: #fff; padding: 10px; text-align: center; font-weight: bold;">🛠️ Redaktörsläge är aktivt</div><div id="editor-banner" style="display:none;background:linear-gradient(to right,#333,#222);color:white;padding:10px;margin:10px 0;text-align:center;font-weight:bold;border-radius:8px;">🛠️ Redaktörsläge är aktivt – du kan nu redigera inlägg</div><div id="editor-login" style="margin: 40px 0;">
-<label for="editor-password"><strong>Redaktörsinloggning:</strong></label>
-<input id="editor-password" placeholder="Lösenord" type="password"/>
-<button onclick="activateEditor()">Logga in</button>
-<span id="editor-status" style="margin-left:10px;color:crimson;"></span>
-</div>
-
-<header>
-<h1>Smältpartiet</h1>
-<p>Vi smälter inte för makt – vi smälter för mening.</p>
-</header>
-<nav>
-<a onclick="showTab('program')">Partiprogram</a>
-<a onclick="showTab('projekt')">Projekt</a>
-<a onclick="showTab('medlem')">Bli medlem</a>
-<a onclick="showTab('kontakt')">Kontakt</a>
-<a onclick="showTab('nyheter')">Nyheter</a>
-<a onclick="showTab('matpolitik')">Matpolitik</a>
-</nav>
-<img alt="Smältpartiets logotyp" class="logo" src="logo.png"/>
-<section class="active" id="program">
-<h2>Partiprogram</h2>
-<p>Smältpartiet står för symbolisk återvinning av vårt förflutna. Vi vill ta vara på gamla mynt och göra något nytt av dem: konst, infrastruktur, och kulturarv.</p>
-</section>
-<section id="projekt">
-<h2>Våra projekt</h2>
-<ul>
-<li>Myntbroar över städernas vattendrag</li>
-<li>Koppartroner i offentliga rum</li>
-<li>Rustningsceremonier för alla 25-åringar</li>
-</ul>
-</section>
-<section id="medlem">
-<h2>Bli medlem</h2>
-<p>Vill du göra skillnad? Gå med i Smältpartiet idag och hjälp oss forma en värld där pengar inte bara byter händer, utan också formar framtiden.</p>
-<a href="mailto:kontakt@smaltpartiet.se?subject=Bli%20medlem%20i%20Smältpartiet">
-<button class="animated-button">Bli medlem</button>
-</a>
-</section>
-<section id="kontakt">
-<h2>Kontakt</h2>
-<form action="mailto:kontakt@smaltpartiet.se" enctype="text/plain" method="POST">
-<label for="namn">Namn:</label>
-<input id="namn" name="namn" required="" type="text"/>
-<label for="epost">E-post:</label>
-<input id="epost" name="epost" pattern="[^@\s]+@[^@\s]+\.[^@\s]+" required="True" title="Skriv en giltig e-postadress" type="email"/>
-<label for="meddelande">Meddelande:</label>
-<textarea id="meddelande" name="meddelande" required="" rows="5"></textarea>
-<button class="animated-button" type="submit">Skicka</button>
-<div id="form-confirmation" style="margin-top: 10px; font-weight: bold; color: green;"></div></form>
-<section id="nyheter">
-<h2>Nyheter</h2>
-<div class="news">
-<div class="icon-label"><i data-lucide="newspaper"></i> <strong>1 maj: </strong>Första smältceremonin genomförd i Göteborg!</div>
-</div>
-<div class="news">
-<div class="icon-label"><i data-lucide="mail"></i> <strong>15 april: </strong>Nu kan du kontakta partiet direkt via vårt formulär!</div>
-</div>
-</section>
-</section>
-<section id="matpolitik">
-<h2>Matpolitik</h2>
-<p>Smältpartiet värnar om ett robust, inkluderande och smakrikt matsystem. Vi vill se:</p>
-<ul>
-<li>Subventioner för lokalproducerad mat</li>
-<li>Offentliga kök som serverar klimatsmarta tamales</li>
-<li>Utbildning i smältande matkultur och gemenskap</li>
-</ul>
-</section>
-<footer>
-<p>© 2025 Smältpartiet. All koppar räknas.</p>
-</footer>
-<script>
-    function showTab(tabId) {
-      document.querySelectorAll('section').forEach(sec => {
-        sec.classList.remove('active');
-      });
-      document.getElementById(tabId).classList.add('active');
-    }
-  </script>
-<script>
-    lucide.createIcons();
-  </script>
-<script>
-  const container = document.getElementById('news-feed');
-
-  function loadPosts() {
-    const stored = localStorage.getItem("smalt_nyheter");
-    if (stored && stored.length > 10) {
-      
-      const usernames = ["Smältarn", "Kopparkalle", "Riksmintarn", "AnnaRust", "Folksmältaren", "BronsBosse", "NickelNina"];
-      const messages = [
-        "Jag vill se en tron i varje stad!",
-        "Nu kan du kontakta partiet direkt via vårt formulär!",
-        "Jag smälte mitt gamla spargrislock, räknas det?",
-        "Finns det rustningar i barnstorlek?",
-        "Första smältceremonin genomförd i Göteborg!",
-        "Mer tamales åt folket!",
-        "Smältval 2026 – vi är redo!"
-      ];
-      let fakeHTML = "";
-      for (let i = 0; i < 5; i++) {
-        const u = usernames[Math.floor(Math.random() * usernames.length)];
-        const m = messages[Math.floor(Math.random() * messages.length)];
-        fakeHTML += `<div class='news'><strong>${u}:</strong> ${m}</div>`;
-      }
-      container.innerHTML =
-             stored;
-    } else {
-      
-      const usernames = ["Smältarn", "Kopparkalle", "Riksmintarn", "AnnaRust", "Folksmältaren", "BronsBosse", "NickelNina"];
-      const messages = [
-        "Jag vill se en tron i varje stad!",
-        "Nu kan du kontakta partiet direkt via vårt formulär!",
-        "Jag smälte mitt gamla spargrislock, räknas det?",
-        "Finns det rustningar i barnstorlek?",
-        "Första smältceremonin genomförd i Göteborg!",
-        "Mer tamales åt folket!",
-        "Smältval 2026 – vi är redo!"
-      ];
-      let fakeHTML = "";
-      for (let i = 0; i < 5; i++) {
-        const u = usernames[Math.floor(Math.random() * usernames.length)];
-        const m = messages[Math.floor(Math.random() * messages.length)];
-        fakeHTML += `<div class='news'><strong>${u}:</strong> ${m}</div>`;
-      }
-      container.innerHTML =
-             `<div class='news'><strong>Smältarn:</strong> Första smältceremonin genomförd i Göteborg!</div>
-      <div class='news'><strong>Kopparkalle:</strong> Nu kan du kontakta partiet direkt via vårt formulär!</div>
-      <div class='news'><strong>AnnaRust:</strong> Jag vill se en tron i varje stad!</div>`;
-    }
-  }
-
-  function addPost() {
-    const name = document.getElementById('username').value.trim();
-    const text = document.getElementById('userpost').value.trim();
-    const confirmBox = document.getElementById('post-confirmation');
-    if (!name || !text) {
-      confirmBox.style.color = "crimson";
-      confirmBox.innerText = "Fyll i både namn och inlägg!";
-      return;
-    }
-    const entry = document.createElement("div");
-    entry.className = "news";
-    entry.innerHTML = `<strong>${name}:</strong> ${text}`;
-    container.prepend(entry);
-    localStorage.setItem("smalt_nyheter", container.innerHTML);
-    document.getElementById('username').value = "";
-    document.getElementById('userpost').value = "";
-    confirmBox.style.color = "green";
-    confirmBox.innerText = "Inlägg upplagt!";
-  }
-
-  window.onload = loadPosts;
-</script>
-<script>
-  const container = document.getElementById('news-feed');
-
-  function loadPosts() {
-    const stored = localStorage.getItem("smalt_nyheter");
-    if (stored && stored.length > 10) {
-      
-      const usernames = ["Smältarn", "Kopparkalle", "Riksmintarn", "AnnaRust", "Folksmältaren", "BronsBosse", "NickelNina"];
-      const messages = [
-        "Jag vill se en tron i varje stad!",
-        "Nu kan du kontakta partiet direkt via vårt formulär!",
-        "Jag smälte mitt gamla spargrislock, räknas det?",
-        "Finns det rustningar i barnstorlek?",
-        "Första smältceremonin genomförd i Göteborg!",
-        "Mer tamales åt folket!",
-        "Smältval 2026 – vi är redo!"
-      ];
-      let fakeHTML = "";
-      for (let i = 0; i < 5; i++) {
-        const u = usernames[Math.floor(Math.random() * usernames.length)];
-        const m = messages[Math.floor(Math.random() * messages.length)];
-        fakeHTML += `<div class='news'><strong>${u}:</strong> ${m}</div>`;
-      }
-      container.innerHTML =
-             stored;
-    } else {
-      
-      const usernames = ["Smältarn", "Kopparkalle", "Riksmintarn", "AnnaRust", "Folksmältaren", "BronsBosse", "NickelNina"];
-      const messages = [
-        "Jag vill se en tron i varje stad!",
-        "Nu kan du kontakta partiet direkt via vårt formulär!",
-        "Jag smälte mitt gamla spargrislock, räknas det?",
-        "Finns det rustningar i barnstorlek?",
-        "Första smältceremonin genomförd i Göteborg!",
-        "Mer tamales åt folket!",
-        "Smältval 2026 – vi är redo!"
-      ];
-      let fakeHTML = "";
-      for (let i = 0; i < 5; i++) {
-        const u = usernames[Math.floor(Math.random() * usernames.length)];
-        const m = messages[Math.floor(Math.random() * messages.length)];
-        fakeHTML += `<div class='news'><strong>${u}:</strong> ${m}</div>`;
-      }
-      container.innerHTML =
-             `<div class='news'><strong>Smältarn:</strong> Första smältceremonin genomförd i Göteborg!</div>
-      <div class='news'><strong>Kopparkalle:</strong> Nu kan du kontakta partiet direkt via vårt formulär!</div>
-      <div class='news'><strong>AnnaRust:</strong> Jag vill se en tron i varje stad!</div>`;
-    }
-  }
-
-  function addPost() {
-    const name = document.getElementById('username').value.trim();
-    const text = document.getElementById('userpost').value.trim();
-    const confirmBox = document.getElementById('post-confirmation');
-    if (!name || !text) {
-      confirmBox.style.color = "crimson";
-      confirmBox.innerText = "Fyll i både namn och inlägg!";
-      return;
-    }
-    const entry = document.createElement("div");
-    entry.className = "news";
-    entry.innerHTML = `<strong>${name}:</strong> ${text}`;
-    container.prepend(entry);
-    localStorage.setItem("smalt_nyheter", container.innerHTML);
-    document.getElementById('username').value = "";
-    document.getElementById('userpost').value = "";
-    confirmBox.style.color = "green";
-    confirmBox.innerText = "Inlägg upplagt!";
-  }
-
-  window.onload = loadPosts;
-</script>
-<script>
-document.querySelector("form").addEventListener("submit", function(e) {
-  e.preventDefault();
-  const name = document.getElementById('name').value.trim();
-  const email = document.getElementById('email').value.trim();
-  const message = document.getElementById('message').value.trim();
-  const confirm = document.getElementById('form-confirmation');
-
-  if (!name || !email || !message) {
-    confirm.style.color = "crimson";
-    confirm.innerText = "Fyll i alla fält innan du skickar.";
-    return;
-  }
-
-  confirm.style.color = "green";
-  confirm.innerText = "Tack för ditt meddelande! Vi återkommer.";
-  document.getElementById('name').value = "";
-  document.getElementById('email').value = "";
-  document.getElementById('message').value = "";
-});
-</script><script>
-<script>
-const correctHash = "817e6a8675b883df8c4abcc40ac39febbf8232e130a84997d0982302ab05737c";
-
-function sha256(input) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(input);
-  return crypto.subtle.digest("SHA-256", data).then(hash => {
-    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, "0")).join("");
-  });
-}
-
-function activateEditor() {
-  const entered = document.getElementById("editor-password").value;
-  sha256(entered).then(h => {
-    if (h === correctHash) {
-      document.getElementById("editor-status").style.color = "green";
-      document.getElementById("editor-status").innerText = "Redaktörsläge aktiverat.";
-      enableEditing();
-    } else {
-      document.getElementById("editor-status").style.color = "crimson";
-      document.getElementById("editor-status").innerText = "Fel lösenord.";
-    }
-  });
-}
-
-function enableEditing() {
-  const posts = document.querySelectorAll("#news-feed .news");
-  posts.forEach(post => {
-    const del = document.createElement("button");
-    del.innerText = "🗑";
-    del.style.marginLeft = "10px";
-    del.onclick = () => {
-      post.remove();
-      localStorage.setItem("smalt_nyheter", document.getElementById("news-feed").innerHTML);
-    };
-    const edit = document.createElement("button");
-    edit.innerText = "✏️";
-    edit.style.marginLeft = "5px";
-    edit.onclick = () => {
-      const content = prompt("Redigera inlägget:", post.innerText.replace(/^[^:]+:/, "").trim());
-      if (content) {
-        post.innerHTML = `<strong>${{post.querySelector("strong").innerText}}</strong> ${{content}}`;
-        enableEditing(); // återlägg knappar
-        localStorage.setItem("smalt_nyheter", document.getElementById("news-feed").innerHTML);
-      }
-    };
-    post.appendChild(edit);
-    post.appendChild(del);
-  });
-}
-</script>
-</script>
-
-
-<footer style="background:#222;color:white;padding:40px 20px;margin-top:80px;font-family:Roboto,sans-serif;">
-<div style="display:flex;flex-wrap:wrap;justify-content:space-around;max-width:1000px;margin:auto;">
-<div style="flex:1;min-width:200px;margin:10px;">
-<h3 style="color:#fcbf49;">Om Smältpartiet</h3>
-<p>Vi tror på transformation – från mynt till möjligheter. Tillsammans smälter vi ner det gamla och gjuter framtiden i ny form.</p>
-</div>
-<div style="flex:1;min-width:200px;margin:10px;">
-<h3 style="color:#fcbf49;">Kontakt</h3>
-<p>Email: <a href="mailto:kontakt@smaltpartiet.se" style="color:#fcbf49;">kontakt@smaltpartiet.se</a></p>
-
-</div>
-<div style="flex:1;min-width:200px;margin:10px;">
-<h3 style="color:#fcbf49;">Snabblänkar</h3>
-<ul style="list-style:none;padding:0;">
-<li><a href="#home" style="color:white;text-decoration:none;">🏠 Hem</a></li>
-<li><a href="#news" style="color:white;text-decoration:none;">📰 Nyhetsflöde</a></li>
-<li><a href="#contact" style="color:white;text-decoration:none;">📬 Kontakt</a></li>
-</ul>
-</div>
-</div>
-<p style="text-align:center;margin-top:40px;color:#aaa;font-size:0.9em;">© 2025 Smältpartiet – Alla rättigheter nedsmälta.</p>
-</footer>
-
-<footer style="background:#f2f2f2;padding:40px 20px;margin-top:60px;border-top:1px solid #ddd;font-family:Roboto,sans-serif;">
-<div style="max-width:900px;margin:0 auto;text-align:center;">
-<h2 style="font-family:Montserrat,sans-serif;margin-bottom:20px;">Smältpartiet</h2>
-<p style="font-size:15px;max-width:600px;margin:0 auto 20px;">
-      Vi står för framtiden. En ny tid där mynt blir möjligheter. Vår smältdegel av idéer formar ett starkare samhälle, ett i metallens och folkets ära.
-    </p>
-<div style="margin:30px 0;">
-<a href="#news" style="margin:0 10px;color:#333;text-decoration:none;font-weight:bold;">Nyhetsflöde</a>
-<a href="#contact" style="margin:0 10px;color:#333;text-decoration:none;font-weight:bold;">Kontakt</a>
-<a href="https://discord.gg/zJcQWgjQBn" style="margin:0 10px;color:#5865F2;text-decoration:none;font-weight:bold;" target="_blank">Discord</a>
-</div>
-<p style="font-size:13px;color:#777;">© 2025 Smältpartiet. Allt smälts. Allt förändras.</p>
-</div>
-</footer>
+  <h1>Nyhetsflöde</h1>
+  <div>
+    <input type="text" id="username" placeholder="Ditt användarnamn">
+    <input type="text" id="message" placeholder="Vad vill du säga?">
+    <button onclick="postMessage(document.getElementById('username').value, document.getElementById('message').value)">Skicka</button>
+  </div>
+  <div style="margin-top:10px">
+    <label>Sortera:</label>
+    <select onchange="setSort(this.value)">
+      <option value="desc">Nyast först</option>
+      <option value="asc">Äldst först</option>
+    </select>
+  </div>
+  <div id="messages" style="margin-top:20px;"></div>
 </body>
 </html>
