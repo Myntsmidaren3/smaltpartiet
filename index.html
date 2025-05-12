@@ -107,6 +107,13 @@
   </style>
 </head>
 <body>
+<div id="editor-indicator" style="display:none; background: #222; color: #fff; padding: 10px; text-align: center; font-weight: bold;">🛠️ Redaktörsläge är aktivt</div><div id="editor-banner" style="display:none;background:linear-gradient(to right,#333,#222);color:white;padding:10px;margin:10px 0;text-align:center;font-weight:bold;border-radius:8px;">🛠️ Redaktörsläge är aktivt – du kan nu redigera inlägg</div><div id="editor-login" style="margin: 40px 0;">
+<label for="editor-password"><strong>Redaktörsinloggning:</strong></label>
+<input id="editor-password" placeholder="Lösenord" type="password"/>
+<button onclick="activateEditor()">Logga in</button>
+<span id="editor-status" style="margin-left:10px;color:crimson;"></span>
+</div>
+
 <header>
 <h1>Smältpartiet</h1>
 <p>Vi smälter inte för makt – vi smälter för mening.</p>
@@ -149,7 +156,7 @@
 <label for="meddelande">Meddelande:</label>
 <textarea id="meddelande" name="meddelande" required="" rows="5"></textarea>
 <button class="animated-button" type="submit">Skicka</button>
-</form>
+<div id="form-confirmation" style="margin-top: 10px; font-weight: bold; color: green;"></div></form>
 <section id="nyheter">
 <h2>Nyheter</h2>
 <div class="news">
@@ -189,9 +196,45 @@
   function loadPosts() {
     const stored = localStorage.getItem("smalt_nyheter");
     if (stored && stored.length > 10) {
-      container.innerHTML = stored;
+      
+      const usernames = ["Smältarn", "Kopparkalle", "Riksmintarn", "AnnaRust", "Folksmältaren", "BronsBosse", "NickelNina"];
+      const messages = [
+        "Jag vill se en tron i varje stad!",
+        "Nu kan du kontakta partiet direkt via vårt formulär!",
+        "Jag smälte mitt gamla spargrislock, räknas det?",
+        "Finns det rustningar i barnstorlek?",
+        "Första smältceremonin genomförd i Göteborg!",
+        "Mer tamales åt folket!",
+        "Smältval 2026 – vi är redo!"
+      ];
+      let fakeHTML = "";
+      for (let i = 0; i < 5; i++) {
+        const u = usernames[Math.floor(Math.random() * usernames.length)];
+        const m = messages[Math.floor(Math.random() * messages.length)];
+        fakeHTML += `<div class='news'><strong>${u}:</strong> ${m}</div>`;
+      }
+      container.innerHTML =
+             stored;
     } else {
-      container.innerHTML = `<div class='news'><strong>Smältarn:</strong> Första smältceremonin genomförd i Göteborg!</div>
+      
+      const usernames = ["Smältarn", "Kopparkalle", "Riksmintarn", "AnnaRust", "Folksmältaren", "BronsBosse", "NickelNina"];
+      const messages = [
+        "Jag vill se en tron i varje stad!",
+        "Nu kan du kontakta partiet direkt via vårt formulär!",
+        "Jag smälte mitt gamla spargrislock, räknas det?",
+        "Finns det rustningar i barnstorlek?",
+        "Första smältceremonin genomförd i Göteborg!",
+        "Mer tamales åt folket!",
+        "Smältval 2026 – vi är redo!"
+      ];
+      let fakeHTML = "";
+      for (let i = 0; i < 5; i++) {
+        const u = usernames[Math.floor(Math.random() * usernames.length)];
+        const m = messages[Math.floor(Math.random() * messages.length)];
+        fakeHTML += `<div class='news'><strong>${u}:</strong> ${m}</div>`;
+      }
+      container.innerHTML =
+             `<div class='news'><strong>Smältarn:</strong> Första smältceremonin genomförd i Göteborg!</div>
       <div class='news'><strong>Kopparkalle:</strong> Nu kan du kontakta partiet direkt via vårt formulär!</div>
       <div class='news'><strong>AnnaRust:</strong> Jag vill se en tron i varje stad!</div>`;
     }
@@ -225,9 +268,45 @@
   function loadPosts() {
     const stored = localStorage.getItem("smalt_nyheter");
     if (stored && stored.length > 10) {
-      container.innerHTML = stored;
+      
+      const usernames = ["Smältarn", "Kopparkalle", "Riksmintarn", "AnnaRust", "Folksmältaren", "BronsBosse", "NickelNina"];
+      const messages = [
+        "Jag vill se en tron i varje stad!",
+        "Nu kan du kontakta partiet direkt via vårt formulär!",
+        "Jag smälte mitt gamla spargrislock, räknas det?",
+        "Finns det rustningar i barnstorlek?",
+        "Första smältceremonin genomförd i Göteborg!",
+        "Mer tamales åt folket!",
+        "Smältval 2026 – vi är redo!"
+      ];
+      let fakeHTML = "";
+      for (let i = 0; i < 5; i++) {
+        const u = usernames[Math.floor(Math.random() * usernames.length)];
+        const m = messages[Math.floor(Math.random() * messages.length)];
+        fakeHTML += `<div class='news'><strong>${u}:</strong> ${m}</div>`;
+      }
+      container.innerHTML =
+             stored;
     } else {
-      container.innerHTML = `<div class='news'><strong>Smältarn:</strong> Första smältceremonin genomförd i Göteborg!</div>
+      
+      const usernames = ["Smältarn", "Kopparkalle", "Riksmintarn", "AnnaRust", "Folksmältaren", "BronsBosse", "NickelNina"];
+      const messages = [
+        "Jag vill se en tron i varje stad!",
+        "Nu kan du kontakta partiet direkt via vårt formulär!",
+        "Jag smälte mitt gamla spargrislock, räknas det?",
+        "Finns det rustningar i barnstorlek?",
+        "Första smältceremonin genomförd i Göteborg!",
+        "Mer tamales åt folket!",
+        "Smältval 2026 – vi är redo!"
+      ];
+      let fakeHTML = "";
+      for (let i = 0; i < 5; i++) {
+        const u = usernames[Math.floor(Math.random() * usernames.length)];
+        const m = messages[Math.floor(Math.random() * messages.length)];
+        fakeHTML += `<div class='news'><strong>${u}:</strong> ${m}</div>`;
+      }
+      container.innerHTML =
+             `<div class='news'><strong>Smältarn:</strong> Första smältceremonin genomförd i Göteborg!</div>
       <div class='news'><strong>Kopparkalle:</strong> Nu kan du kontakta partiet direkt via vårt formulär!</div>
       <div class='news'><strong>AnnaRust:</strong> Jag vill se en tron i varje stad!</div>`;
     }
@@ -255,5 +334,117 @@
 
   window.onload = loadPosts;
 </script>
+<script>
+document.querySelector("form").addEventListener("submit", function(e) {
+  e.preventDefault();
+  const name = document.getElementById('name').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const message = document.getElementById('message').value.trim();
+  const confirm = document.getElementById('form-confirmation');
+
+  if (!name || !email || !message) {
+    confirm.style.color = "crimson";
+    confirm.innerText = "Fyll i alla fält innan du skickar.";
+    return;
+  }
+
+  confirm.style.color = "green";
+  confirm.innerText = "Tack för ditt meddelande! Vi återkommer.";
+  document.getElementById('name').value = "";
+  document.getElementById('email').value = "";
+  document.getElementById('message').value = "";
+});
+</script><script>
+<script>
+const correctHash = "817e6a8675b883df8c4abcc40ac39febbf8232e130a84997d0982302ab05737c";
+
+function sha256(input) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(input);
+  return crypto.subtle.digest("SHA-256", data).then(hash => {
+    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, "0")).join("");
+  });
+}
+
+function activateEditor() {
+  const entered = document.getElementById("editor-password").value;
+  sha256(entered).then(h => {
+    if (h === correctHash) {
+      document.getElementById("editor-status").style.color = "green";
+      document.getElementById("editor-status").innerText = "Redaktörsläge aktiverat.";
+      enableEditing();
+    } else {
+      document.getElementById("editor-status").style.color = "crimson";
+      document.getElementById("editor-status").innerText = "Fel lösenord.";
+    }
+  });
+}
+
+function enableEditing() {
+  const posts = document.querySelectorAll("#news-feed .news");
+  posts.forEach(post => {
+    const del = document.createElement("button");
+    del.innerText = "🗑";
+    del.style.marginLeft = "10px";
+    del.onclick = () => {
+      post.remove();
+      localStorage.setItem("smalt_nyheter", document.getElementById("news-feed").innerHTML);
+    };
+    const edit = document.createElement("button");
+    edit.innerText = "✏️";
+    edit.style.marginLeft = "5px";
+    edit.onclick = () => {
+      const content = prompt("Redigera inlägget:", post.innerText.replace(/^[^:]+:/, "").trim());
+      if (content) {
+        post.innerHTML = `<strong>${{post.querySelector("strong").innerText}}</strong> ${{content}}`;
+        enableEditing(); // återlägg knappar
+        localStorage.setItem("smalt_nyheter", document.getElementById("news-feed").innerHTML);
+      }
+    };
+    post.appendChild(edit);
+    post.appendChild(del);
+  });
+}
+</script>
+</script>
+
+
+<footer style="background:#222;color:white;padding:40px 20px;margin-top:80px;font-family:Roboto,sans-serif;">
+<div style="display:flex;flex-wrap:wrap;justify-content:space-around;max-width:1000px;margin:auto;">
+<div style="flex:1;min-width:200px;margin:10px;">
+<h3 style="color:#fcbf49;">Om Smältpartiet</h3>
+<p>Vi tror på transformation – från mynt till möjligheter. Tillsammans smälter vi ner det gamla och gjuter framtiden i ny form.</p>
+</div>
+<div style="flex:1;min-width:200px;margin:10px;">
+<h3 style="color:#fcbf49;">Kontakt</h3>
+<p>Email: <a href="mailto:kontakt@smaltpartiet.se" style="color:#fcbf49;">kontakt@smaltpartiet.se</a></p>
+
+</div>
+<div style="flex:1;min-width:200px;margin:10px;">
+<h3 style="color:#fcbf49;">Snabblänkar</h3>
+<ul style="list-style:none;padding:0;">
+<li><a href="#home" style="color:white;text-decoration:none;">🏠 Hem</a></li>
+<li><a href="#news" style="color:white;text-decoration:none;">📰 Nyhetsflöde</a></li>
+<li><a href="#contact" style="color:white;text-decoration:none;">📬 Kontakt</a></li>
+</ul>
+</div>
+</div>
+<p style="text-align:center;margin-top:40px;color:#aaa;font-size:0.9em;">© 2025 Smältpartiet – Alla rättigheter nedsmälta.</p>
+</footer>
+
+<footer style="background:#f2f2f2;padding:40px 20px;margin-top:60px;border-top:1px solid #ddd;font-family:Roboto,sans-serif;">
+<div style="max-width:900px;margin:0 auto;text-align:center;">
+<h2 style="font-family:Montserrat,sans-serif;margin-bottom:20px;">Smältpartiet</h2>
+<p style="font-size:15px;max-width:600px;margin:0 auto 20px;">
+      Vi står för framtiden. En ny tid där mynt blir möjligheter. Vår smältdegel av idéer formar ett starkare samhälle, ett i metallens och folkets ära.
+    </p>
+<div style="margin:30px 0;">
+<a href="#news" style="margin:0 10px;color:#333;text-decoration:none;font-weight:bold;">Nyhetsflöde</a>
+<a href="#contact" style="margin:0 10px;color:#333;text-decoration:none;font-weight:bold;">Kontakt</a>
+<a href="https://discord.gg/zJcQWgjQBn" style="margin:0 10px;color:#5865F2;text-decoration:none;font-weight:bold;" target="_blank">Discord</a>
+</div>
+<p style="font-size:13px;color:#777;">© 2025 Smältpartiet. Allt smälts. Allt förändras.</p>
+</div>
+</footer>
 </body>
 </html>
